@@ -192,6 +192,23 @@
     stroke-width: 1.5;
   }
 
+  .nav-separator {
+    height: 1px;
+    background: rgba(90, 155, 181, 0.12);
+    margin: 12px 16px;
+  }
+
+  .nav-logout {
+    opacity: 0.5;
+    font-size: 12px;
+  }
+
+  .nav-logout:hover {
+    opacity: 0.9;
+    background: rgba(194, 85, 69, 0.15);
+    color: #f0a0a0;
+  }
+
   .sidebar-footer {
     padding: 24px 28px 0;
     margin-top: auto;
@@ -4013,18 +4030,46 @@ font-size: 16px;
     .sidebar {
       position: relative;
       height: auto;
-      padding: 20px 0;
+      padding: 16px 0;
+      box-shadow: 0 2px 12px rgba(12, 34, 48, 0.15);
     }
-    .sidebar-brand { padding: 0 20px 16px; }
-    .nav { flex-direction: row; overflow-x: auto; padding: 0 10px; gap: 4px; }
+    .sidebar-brand { padding: 0 20px 12px; display: flex; align-items: center; gap: 14px; }
+    .brand-logo { margin-bottom: 0; }
+    .brand-logo-svg { width: 40px; height: 36px; }
+    .brand-text { gap: 4px; }
+    .brand-name { font-size: 20px; }
+    .brand-descriptor-left, .brand-descriptor-right { font-size: 7px; }
+    .brand-sub { display: none; }
+    .nav {
+      flex-direction: row;
+      overflow-x: auto;
+      padding: 0 10px;
+      gap: 4px;
+      -webkit-overflow-scrolling: touch;
+    }
     .nav-group-label { display: none; }
-    .nav-item { white-space: nowrap; padding: 8px 14px; }
+    .nav-separator { display: none; }
+    .nav-item {
+      white-space: nowrap;
+      padding: 10px 16px;
+      font-size: 14px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+    }
+    .nav-logout {
+      font-size: 13px;
+    }
     .sidebar-footer { display: none; }
-    .sidebar-auth { padding: 12px 16px 0; }
+    .sidebar-auth { padding: 10px 16px 0; }
     .admin-only { display: contents; }
     .mode-public .admin-only > * { display: none !important; }
-    .main { padding: 30px 24px 60px; }
-    .page-title { font-size: 36px; }
+
+    .main { padding: 24px 20px 60px; }
+    .page-title { font-size: 32px; }
+    .page-subtitle { font-size: 14px; }
+
+    /* Forms */
     .scenario-grid { grid-template-columns: 1fr; }
     .sim-grid { grid-template-columns: 1.5fr 1fr 1fr; }
     .sim-grid .delta-col { display: none; }
@@ -4035,20 +4080,66 @@ font-size: 16px;
     .catalog-form { grid-template-columns: 1fr; }
     .purchase-filters { width: 100%; }
     .search-wrap input, .search-wrap input:focus { width: 100%; }
-    .sale-builder { grid-template-columns: 1fr; }
-    .sale-cart { position: relative; top: 0; }
-    .sale-products-grid { grid-template-columns: repeat(2, 1fr); }
-    #sale-catalog-grid { max-height: 380px; }
-    .dashboard-grid { grid-template-columns: 1fr; }
-    .donuts-row { grid-template-columns: 1fr; }
-    .chart-card.chart-tall-2 { grid-column: 1; }
+
+    /* Control panel */
     .control-panel-body { grid-template-columns: 1fr; }
     .control-catalog { border-right: none; border-bottom: 1px solid var(--line); }
+    .control-catalog-grid { max-height: 420px; }
+    .sale-products-grid { grid-template-columns: repeat(3, 1fr); }
+    .sale-product-btn {
+      min-height: 80px;
+      padding: 14px;
+      font-size: 14px;
+    }
+    .sale-product-name { font-size: 14px; }
+    .sale-product-price { font-size: 13px; }
+
+    /* Cart */
+    .sale-builder { grid-template-columns: 1fr; }
+    .sale-cart { position: relative; top: 0; }
+    .cart-item { padding: 12px 18px; gap: 10px; }
+    .cart-item-name { font-size: 14px; }
+    .qty-btn { width: 32px; height: 32px; font-size: 16px; }
+    .qty-display { width: 32px; font-size: 14px; }
+    .btn-confirm-sale { padding: 16px; font-size: 15px; min-height: 50px; }
+    .cart-toggle-group .pay-label { padding: 10px 8px; font-size: 13px; }
+
+    /* Dashboard */
+    .dashboard-grid { grid-template-columns: 1fr 1fr; }
+    .chart-card.chart-wide { grid-column: 1 / -1; }
+    .donuts-row { grid-template-columns: 1fr 1fr; }
+
+    /* Stats */
+    .stat-grid-compact { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+    .stat { padding: 18px 20px; }
+    .stat-value { font-size: 28px; }
+    .stat-value.smaller { font-size: 22px; }
+    .stat-label { font-size: 10px; }
+
+    /* Category tabs */
+    .control-cat-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .cat-tab { padding: 8px 14px; font-size: 13px; min-height: 36px; }
+
+    /* Clock */
     .clock-time { font-size: 24px; }
-    .control-today-stats { gap: 14px; }
-    .today-stat-value { font-size: 14px; }
+    .today-stat-value { font-size: 16px; }
+  }
+
+  @media (max-width: 600px) {
+    .main { padding: 20px 14px 50px; }
+    .page-title { font-size: 26px; }
+    .sale-products-grid { grid-template-columns: repeat(2, 1fr); }
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .donuts-row { grid-template-columns: 1fr; }
     .stat-grid-compact { grid-template-columns: 1fr 1fr; }
-    .chart-card.chart-wide { grid-column: 1; }
+    .control-panel-header { padding: 16px 18px; }
+    .clock-time { font-size: 20px; }
+    .today-stat-value { font-size: 14px; }
+    .control-today-stats { gap: 12px; }
+    .purchase-form { grid-template-columns: 1fr; }
+    .catalog-row { grid-template-columns: 1fr 100px 30px; }
+    .recipe-ingredient-row { grid-template-columns: 1fr 80px 50px 28px; }
+    .product-bar-row { grid-template-columns: minmax(0, 1.5fr) 2fr 70px; }
   }
 </style>
 </head>
@@ -4145,13 +4236,7 @@ font-size: 16px;
 
       <!-- ADMIN ONLY (hidden by default) -->
       <div class="admin-only" style="display: none;">
-        <div class="nav-group-label">Panorama</div>
-        <button class="nav-item" data-page="inicio">
-          <svg class="nav-icon"><use href="#icon-home"/></svg>
-          Inicio
-        </button>
-
-        <div class="nav-group-label">Datos base</div>
+        <div class="nav-group-label">Administración</div>
         <button class="nav-item" data-page="configuracion">
           <svg class="nav-icon"><use href="#icon-settings"/></svg>
           Configuración
@@ -4164,33 +4249,11 @@ font-size: 16px;
           <svg class="nav-icon"><use href="#icon-cart"/></svg>
           Compras
         </button>
-        <button class="nav-item" data-page="catalogo">
-          <svg class="nav-icon"><use href="#icon-tag"/></svg>
-          Catálogo de productos
-        </button>
-        <button class="nav-item" data-page="recetas">
-          <svg class="nav-icon"><use href="#icon-coffee"/></svg>
-          Fichas técnicas
-        </button>
 
-        <div class="nav-group-label">Operación</div>
-        <button class="nav-item" data-page="turnos">
-          <svg class="nav-icon"><use href="#icon-calendar"/></svg>
-          Editar turnos
-        </button>
-        <button class="nav-item" data-page="sueldos">
-          <svg class="nav-icon"><use href="#icon-wallet"/></svg>
-          Sueldos mensual
-        </button>
-
-        <div class="nav-group-label">Análisis</div>
-        <button class="nav-item" data-page="equilibrio">
-          <svg class="nav-icon"><use href="#icon-target"/></svg>
-          Punto de equilibrio
-        </button>
-        <button class="nav-item" data-page="simulador">
-          <svg class="nav-icon"><use href="#icon-flask"/></svg>
-          Simulador
+        <div class="nav-separator"></div>
+        <button class="nav-item nav-logout" id="btn-logout">
+          <svg class="nav-icon"><use href="#icon-lock"/></svg>
+          Cerrar sesión
         </button>
       </div>
     </nav>
@@ -5747,10 +5810,12 @@ function breakEvenDaily(foodCostPct) {
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', () => {
     const target = item.dataset.page;
+    if (!target) return; // skip logout button etc
     document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
     document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
     item.classList.add('active');
-    document.getElementById('page-' + target).classList.add('active');
+    const pageEl = document.getElementById('page-' + target);
+    if (pageEl) pageEl.classList.add('active');
     window.scrollTo(0, 0);
   });
 });
@@ -7153,6 +7218,13 @@ document.getElementById('auth-toggle').addEventListener('click', () => {
   } else {
     openAuthModal('create');
   }
+});
+
+// Logout button inside admin nav
+document.getElementById('btn-logout').addEventListener('click', () => {
+  setAuthenticated(false);
+  applyAuthMode();
+  showToastMsg('Sesión cerrada');
 });
 
 document.getElementById('auth-submit').addEventListener('click', handleAuthSubmit);
