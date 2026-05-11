@@ -4233,6 +4233,14 @@ font-size: 16px;
         <svg class="nav-icon"><use href="#icon-stock"/></svg>
         Stock
       </button>
+      <button class="nav-item" data-page="catalogo">
+        <svg class="nav-icon"><use href="#icon-tag"/></svg>
+        Catálogo
+      </button>
+      <button class="nav-item" data-page="recetas">
+        <svg class="nav-icon"><use href="#icon-coffee"/></svg>
+        Fichas técnicas
+      </button>
 
       <!-- ADMIN ONLY (hidden by default) -->
       <div class="admin-only" style="display: none;">
@@ -7111,7 +7119,7 @@ function applyAuthMode() {
     indicator.textContent = 'Modo equipo';
     btn.classList.remove('is-logged');
     // If user is in admin-only page, redirect to public
-    const PUBLIC_PAGES = ['cronograma-publico', 'ventas', 'stock'];
+    const PUBLIC_PAGES = ['cronograma-publico', 'ventas', 'stock', 'catalogo', 'recetas'];
     const activePage = document.querySelector('.page.active');
     if (activePage) {
       const pageId = activePage.id.replace('page-', '');
