@@ -3255,6 +3255,63 @@ font-size: 12px;
     background: var(--paper);
   }
 
+  /* Cart tabs (multi-order) */
+  .cart-tabs {
+    display: flex;
+    gap: 0;
+    background: var(--nogal-deep);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .cart-tab-btn {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 8px;
+    border: none;
+    background: transparent;
+    color: rgba(242, 237, 228, 0.4);
+    font-family: 'Comfortaa', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+    position: relative;
+    white-space: nowrap;
+  }
+
+  .cart-tab-btn:hover {
+    color: rgba(242, 237, 228, 0.7);
+    background: rgba(90, 155, 181, 0.08);
+  }
+
+  .cart-tab-btn.active {
+    color: var(--cream);
+    background: rgba(90, 155, 181, 0.18);
+    box-shadow: inset 0 -2px 0 var(--azul);
+  }
+
+  .cart-tab-btn.has-items {
+    color: rgba(242, 237, 228, 0.75);
+  }
+
+  .cart-tab-btn.has-items::after {
+    content: '';
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--azul);
+  }
+
+  .cart-tab-btn.active.has-items::after {
+    background: var(--gold);
+  }
+
   .cart-top {
     padding: 14px 20px;
     background: var(--cream-deep);
@@ -4916,9 +4973,10 @@ font-size: 16px;
 
             <!-- RIGHT: cart -->
             <div class="control-cart">
+              <div class="cart-tabs" id="cart-tabs"></div>
               <div class="cart-top">
                 <div class="cart-top-title">
-                  <span>Pedido actual</span>
+                  <span id="cart-tab-label">Mostrador</span>
                   <button class="btn-cart-clear" id="btn-clear-cart" title="Vaciar carrito">Vaciar</button>
                 </div>
                 <div class="cart-top-count" id="cart-count">0 items</div>
@@ -7396,11 +7454,53 @@ document.getElementById('team-message-input').addEventListener('input', e => {
 });
 
 // =====================================================
-// SALES (cart-based)
+// SALES (cart-based, multi-tab for simultaneous orders)
 // =====================================================
 
-// Sale builder state — current cart being assembled
-let saleCart = []; // [{ productId, qty }]
+// Tab system: multiple independent carts
+const CART_TABS = [
+  { id: 'mostrador', label: 'Mostrador', short: 'Most.' },
+  { id: 'mesa-1', label: 'Mesa 1', short: 'M1' },
+  { id: 'mesa-2', label: 'Mesa 2', short: 'M2' },
+  { id: 'mesa-3', label: 'Mesa 3', short: 'M3' },
+  { id: 'mesa-4', label: 'Mesa 4', short: 'M4' }
+];
+
+let saleCarts = {};
+CART_TABS.forEach(t => saleCarts[t.id] = []);
+let activeTab = 'mostrador';
+
+// Getter for current cart
+function getSaleCart() { return saleCarts[activeTab]; }
+
+function switchTab(tabId) {
+  activeTab = tabId;
+  renderCartTabs();
+  renderSaleCart();
+}
+
+function renderCartTabs() {
+  const container = document.getElementById('cart-tabs');
+  const labelEl = document.getElementById('cart-tab-label');
+  if (!container) return;
+
+  container.innerHTML = CART_TABS.map(t => {
+    const cart = saleCarts[t.id] || [];
+    const itemCount = cart.reduce((s, i) => s + i.qty, 0);
+    const isActive = t.id === activeTab;
+    const hasItems = itemCount > 0;
+    return `<button class="cart-tab-btn ${isActive ? 'active' : ''} ${hasItems ? 'has-items' : ''}" data-tab="${t.id}">${t.label}</button>`;
+  }).join('');
+
+  container.querySelectorAll('[data-tab]').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  if (labelEl) {
+    const tab = CART_TABS.find(t => t.id === activeTab);
+    labelEl.textContent = tab ? tab.label : 'Pedido';
+  }
+}
 
 function filterSalesByPeriod(period) {
   const now = new Date();
@@ -7449,6 +7549,7 @@ function renderSalesPage() {
   renderSalesKPIs();
   renderSalesDashboard();
   renderSaleCatalog();
+  renderCartTabs();
   renderSaleCart();
   renderSalesList();
 }
@@ -8395,29 +8496,34 @@ function cartKey(productId, tamano) {
 }
 
 function addToCart(productId, tamano) {
+  const cart = getSaleCart();
   const key = cartKey(productId, tamano);
-  const existing = saleCart.find(item => cartKey(item.productId, item.tamano) === key);
+  const existing = cart.find(item => cartKey(item.productId, item.tamano) === key);
   if (existing) {
     existing.qty += 1;
   } else {
-    saleCart.push({ productId, tamano, qty: 1 });
+    cart.push({ productId, tamano, qty: 1 });
   }
   renderSaleCart();
+  renderCartTabs();
 }
 
 function changeCartQty(cartIdx, delta) {
-  const item = saleCart[cartIdx];
+  const cart = getSaleCart();
+  const item = cart[cartIdx];
   if (!item) return;
   item.qty += delta;
   if (item.qty <= 0) {
-    saleCart.splice(cartIdx, 1);
+    cart.splice(cartIdx, 1);
   }
   renderSaleCart();
+  renderCartTabs();
 }
 
 function removeFromCart(cartIdx) {
-  saleCart.splice(cartIdx, 1);
+  getSaleCart().splice(cartIdx, 1);
   renderSaleCart();
+  renderCartTabs();
 }
 
 function renderSaleCart() {
@@ -8427,18 +8533,19 @@ function renderSaleCart() {
   const countEl = document.getElementById('cart-count');
   if (!container) return;
 
-  const totalItems = saleCart.reduce((s, i) => s + i.qty, 0);
+  const cart = getSaleCart();
+  const totalItems = cart.reduce((s, i) => s + i.qty, 0);
   if (countEl) countEl.textContent = `${totalItems} item${totalItems === 1 ? '' : 's'}`;
 
-  if (saleCart.length === 0) {
-    container.innerHTML = '<div class="cart-empty">Tocá un producto para agregarlo al carrito.</div>';
+  if (cart.length === 0) {
+    container.innerHTML = '<div class="cart-empty">Tocá un producto para agregarlo.</div>';
     totalEl.textContent = '$0';
     confirmBtn.disabled = true;
     return;
   }
 
   let total = 0;
-  container.innerHTML = saleCart.map((item, idx) => {
+  container.innerHTML = cart.map((item, idx) => {
     const prod = getProducto(item.productId);
     if (!prod) return '';
     const unitPrice = item.tamano ? Number(item.tamano.precio) || 0 : Number(prod.precio) || 0;
@@ -8476,21 +8583,27 @@ function renderSaleCart() {
 }
 
 function clearCart() {
-  saleCart = [];
+  saleCarts[activeTab] = [];
   renderSaleCart();
+  renderCartTabs();
 }
 
 // === Save sale from cart ===
 function saveSale() {
-  if (saleCart.length === 0) return;
+  const cart = getSaleCart();
+  if (cart.length === 0) return;
 
   const method = document.querySelector('input[name="payment-method"]:checked')?.value || 'efectivo';
-  const tipoConsumo = document.querySelector('input[name="consumo-tipo"]:checked')?.value || 'local';
+  const tipoConsumo = activeTab === 'mostrador'
+    ? (document.querySelector('input[name="consumo-tipo"]:checked')?.value || 'local')
+    : 'local'; // mesas are always local
   const today = new Date();
   const fecha = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
 
-  // Build items snapshot (copy current price/name so historical sales don't change if catalog changes later)
-  const items = saleCart.map(c => {
+  const tabLabel = CART_TABS.find(t => t.id === activeTab)?.label || activeTab;
+
+  // Build items snapshot
+  const items = cart.map(c => {
     const prod = getProducto(c.productId);
     const unitPrice = c.tamano ? (Number(c.tamano.precio) || 0) : (prod ? Number(prod.precio) || 0 : 0);
     const baseName = prod ? prod.nombre : 'Producto eliminado';
@@ -8541,7 +8654,7 @@ function saveSale() {
   renderInicioCriticalAlerts();
 
   // Build toast message
-  let toastMsg = `Venta de ${fmt(total)} guardada${tipoConsumo === 'llevar' ? ' · Para llevar' : ''}`;
+  let toastMsg = `${tabLabel}: ${fmt(total)}${tipoConsumo === 'llevar' ? ' · Llevar' : ''}`;
   if (stockResult.deductions.length > 0) {
     const deductionStr = stockResult.deductions
       .map(d => `${d.qty.toFixed(d.qty < 10 ? 1 : 0)}${d.unit} ${d.name.toLowerCase().split(' ')[0]}`)
