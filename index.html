@@ -5393,6 +5393,10 @@ font-size: 16px;
       <div class="section">
         <div class="section-header">
           <div class="section-title">Cierre de turno</div>
+          <button class="btn btn-ghost" id="btn-daily-report" style="font-size:12px; gap:6px;">
+            <svg width="14" height="14"><use href="#icon-receipt"/></svg>
+            Informe del día (PDF)
+          </button>
         </div>
         <div class="shift-close-grid" id="shift-close-grid"></div>
         <div id="shift-close-history" style="margin-top: 16px;"></div>
@@ -7732,6 +7736,148 @@ document.getElementById('btn-import-data').addEventListener('change', (e) => {
   reader.readAsText(file);
   e.target.value = '';
 });
+
+// === Daily report (print to PDF) ===
+document.getElementById('btn-daily-report').addEventListener('click', generateDailyReport);
+
+function generateDailyReport() {
+  const today = getTodayStr();
+  const todaySales = state.ventas.filter(v => v.fecha === today);
+  const total = todaySales.reduce((s, v) => s + (Number(v.monto) || 0), 0);
+  const count = todaySales.length;
+  const avg = count > 0 ? total / count : 0;
+  const efectivo = todaySales.filter(v => v.metodo === 'efectivo').reduce((s, v) => s + (Number(v.monto) || 0), 0);
+  const transfer = todaySales.filter(v => v.metodo === 'transferencia').reduce((s, v) => s + (Number(v.monto) || 0), 0);
+  const localCount = todaySales.filter(v => v.tipoConsumo === 'local' || !v.tipoConsumo).length;
+  const llevarCount = todaySales.filter(v => v.tipoConsumo === 'llevar').length;
+
+  // Products breakdown
+  const prodTotals = {};
+  todaySales.forEach(v => {
+    if (!Array.isArray(v.items)) return;
+    v.items.forEach(it => {
+      const key = it.nombre || 'Sin nombre';
+      if (!prodTotals[key]) prodTotals[key] = { nombre: key, qty: 0, monto: 0 };
+      prodTotals[key].qty += Number(it.qty) || 0;
+      prodTotals[key].monto += Number(it.subtotal) || 0;
+    });
+  });
+  const topProducts = Object.values(prodTotals).sort((a, b) => b.qty - a.qty);
+
+  // Shift summaries
+  const shiftRows = state.turnoDefs.map(t => {
+    const ss = getSalesForShift(t, today);
+    const st = ss.reduce((s, v) => s + (Number(v.monto) || 0), 0);
+    const sc = ss.length;
+    const se = ss.filter(v => v.metodo === 'efectivo').reduce((s, v) => s + (Number(v.monto) || 0), 0);
+    return { label: t.label, horario: `${t.inicio}–${t.fin}`, total: st, count: sc, efectivo: se, transfer: st - se };
+  });
+
+  // Sales detail
+  const salesDetail = [...todaySales].sort((a, b) => (a.creado || '').localeCompare(b.creado || ''));
+
+  const now = new Date();
+  const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const dateStr = `${dias[now.getDay()]} ${now.getDate()} de ${meses[now.getMonth()]} ${now.getFullYear()}`;
+
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Montés · Informe ${today}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; color: #15303E; padding: 40px; max-width: 800px; margin: 0 auto; font-size: 13px; }
+  .header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #5A9BB5; }
+  .header h1 { font-family: 'Comfortaa', sans-serif; font-size: 28px; font-weight: 700; color: #15303E; }
+  .header .desc { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #5A9BB5; margin-top: 4px; }
+  .header .date { font-size: 14px; margin-top: 8px; color: #3A5565; }
+  .section { margin-bottom: 24px; }
+  .section h2 { font-family: 'Comfortaa', sans-serif; font-size: 15px; font-weight: 600; color: #5A9BB5; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #E4DDD0; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .kpi { text-align: center; background: #F2EDE4; border-radius: 8px; padding: 14px 10px; }
+  .kpi .val { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 600; color: #15303E; }
+  .kpi .lbl { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: #7A9BA8; margin-top: 4px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  th { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: #7A9BA8; text-align: left; padding: 8px 10px; border-bottom: 2px solid #E4DDD0; }
+  td { padding: 8px 10px; border-bottom: 1px solid #E4DDD0; font-size: 12px; }
+  td.num { text-align: right; font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+  tr:last-child td { border-bottom: none; }
+  .total-row td { font-weight: 700; border-top: 2px solid #15303E; font-size: 13px; }
+  .footer { text-align: center; margin-top: 30px; padding-top: 16px; border-top: 1px solid #E4DDD0; font-size: 10px; color: #7A9BA8; }
+  @media print { body { padding: 20px; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>CAFÉ MONTÉS VERMUT</h1>
+  <div class="desc">Informe diario de ventas</div>
+  <div class="date">${dateStr}</div>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi"><div class="val">${fmt(total)}</div><div class="lbl">Total del día</div></div>
+  <div class="kpi"><div class="val">${count}</div><div class="lbl">Ventas</div></div>
+  <div class="kpi"><div class="val">${fmt(avg)}</div><div class="lbl">Ticket promedio</div></div>
+  <div class="kpi"><div class="val">${llevarCount}</div><div class="lbl">Para llevar</div></div>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi"><div class="val">${fmt(efectivo)}</div><div class="lbl">Efectivo</div></div>
+  <div class="kpi"><div class="val">${fmt(transfer)}</div><div class="lbl">Transferencia</div></div>
+  <div class="kpi"><div class="val">${localCount}</div><div class="lbl">En el local</div></div>
+  <div class="kpi"><div class="val">${llevarCount}</div><div class="lbl">Para llevar</div></div>
+</div>
+
+<div class="section">
+  <h2>Por turno</h2>
+  <table>
+    <tr><th>Turno</th><th>Horario</th><th style="text-align:right">Ventas</th><th style="text-align:right">Efectivo</th><th style="text-align:right">Transfer</th><th style="text-align:right">Total</th></tr>
+    ${shiftRows.map(s => `<tr><td>${s.label}</td><td>${s.horario}</td><td class="num">${s.count}</td><td class="num">${fmt(s.efectivo)}</td><td class="num">${fmt(s.transfer)}</td><td class="num">${fmt(s.total)}</td></tr>`).join('')}
+    <tr class="total-row"><td colspan="2">Total</td><td class="num">${count}</td><td class="num">${fmt(efectivo)}</td><td class="num">${fmt(transfer)}</td><td class="num">${fmt(total)}</td></tr>
+  </table>
+</div>
+
+<div class="section">
+  <h2>Productos vendidos</h2>
+  <table>
+    <tr><th>Producto</th><th style="text-align:right">Cantidad</th><th style="text-align:right">Facturado</th></tr>
+    ${topProducts.map(p => `<tr><td>${p.nombre}</td><td class="num">${p.qty}</td><td class="num">${fmt(p.monto)}</td></tr>`).join('')}
+  </table>
+</div>
+
+<div class="section">
+  <h2>Detalle de ventas (${count})</h2>
+  <table>
+    <tr><th>Hora</th><th>Productos</th><th>Pago</th><th>Tipo</th><th style="text-align:right">Monto</th></tr>
+    ${salesDetail.map(v => {
+      const hora = v.creado ? new Date(v.creado).toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'}) : '—';
+      const prods = Array.isArray(v.items) ? v.items.map(i => i.qty + '× ' + i.nombre).join(', ') : 'Sin detalle';
+      const pago = v.metodo === 'efectivo' ? 'Efvo' : 'Transf';
+      const tipo = v.tipoConsumo === 'llevar' ? 'Llevar' : 'Local';
+      return '<tr><td>' + hora + '</td><td>' + prods + '</td><td>' + pago + '</td><td>' + tipo + '</td><td class="num">' + fmt(v.monto) + '</td></tr>';
+    }).join('')}
+    <tr class="total-row"><td colspan="4">Total del día</td><td class="num">${fmt(total)}</td></tr>
+  </table>
+</div>
+
+<div class="footer">
+  Café Montés · San Martín de los Andes · Generado ${now.toLocaleString('es-AR')}
+</div>
+
+<script>window.onload = () => window.print();<\/script>
+</body></html>`;
+
+  const w = window.open('', '_blank');
+  if (w) {
+    w.document.write(html);
+    w.document.close();
+  } else {
+    alert('El navegador bloqueó la ventana emergente. Permití las ventanas emergentes para este sitio.');
+  }
+}
 
 document.getElementById('auth-submit').addEventListener('click', handleAuthSubmit);
 document.getElementById('auth-cancel').addEventListener('click', closeAuthModal);
