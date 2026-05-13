@@ -1732,6 +1732,39 @@ font-family: 'Comfortaa', sans-serif;
   .color-swatch:hover { transform: scale(1.15); }
   .color-swatch.active { border-color: var(--nogal); box-shadow: 0 0 0 1px var(--paper); }
 
+  /* =================== EYE TOGGLE (show/hide detail) =================== */
+  .btn-eye-toggle {
+    background: var(--paper);
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+    color: var(--ink-faint);
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    margin-top: 8px;
+  }
+
+  .btn-eye-toggle:hover {
+    color: var(--azul);
+    border-color: var(--azul);
+    background: rgba(90, 155, 181, 0.06);
+  }
+
+  .btn-eye-toggle.hidden-mode {
+    background: var(--nogal);
+    border-color: var(--nogal);
+    color: var(--cream);
+  }
+
+  .ventas-detail-sections {
+    transition: all 0.3s ease;
+  }
+
+  .ventas-detail-sections.hidden {
+    display: none;
+  }
+
   /* =================== SHIFT CLOSING =================== */
   .shift-close-grid {
     display: grid;
@@ -5179,10 +5212,16 @@ font-size: 16px;
 
     <!-- ============ VENTAS ============ -->
     <section class="page" id="page-ventas">
-      <header class="page-header">
-        <div class="page-eyebrow">Panel de control · Caja</div>
-        <h1 class="page-title">Ventas<br><em>del día.</em></h1>
-        <p class="page-subtitle">Despachá rápido desde el mostrador. Todo el panorama del negocio a un vistazo.</p>
+      <header class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+          <div class="page-eyebrow">Panel de control · Caja</div>
+          <h1 class="page-title">Ventas<br><em>del día.</em></h1>
+          <p class="page-subtitle">Despachá rápido desde el mostrador.</p>
+        </div>
+        <button class="btn-eye-toggle" id="btn-toggle-ventas-detail" title="Mostrar/ocultar análisis y datos">
+          <svg width="20" height="20" id="eye-icon-on"><use href="#icon-eye"/></svg>
+          <svg width="20" height="20" id="eye-icon-off" style="display:none;"><use href="#icon-eye-off"/></svg>
+        </button>
       </header>
 
       <!-- ============ PANEL DE CONTROL · NUEVA VENTA ============ -->
@@ -5282,6 +5321,7 @@ font-size: 16px;
       </div>
 
       <!-- ============ CIERRE DE TURNO ============ -->
+      <div class="ventas-detail-sections" id="ventas-detail-sections">
       <div class="section">
         <div class="section-header">
           <div class="section-title">Cierre de turno</div>
@@ -5378,6 +5418,7 @@ font-size: 16px;
 
         <div class="purchase-list" id="sales-list"></div>
       </div>
+      </div><!-- end ventas-detail-sections -->
     </section>
 
     <!-- ============ STOCK ============ -->
@@ -9246,6 +9287,18 @@ document.getElementById('sales-period').addEventListener('change', () => {
 document.getElementById('sale-product-search').addEventListener('input', renderSaleCatalog);
 ['sale-search', 'filter-payment'].forEach(id => {
   document.getElementById(id).addEventListener('input', renderSalesList);
+});
+
+// Eye toggle: show/hide detail sections
+document.getElementById('btn-toggle-ventas-detail').addEventListener('click', () => {
+  const sections = document.getElementById('ventas-detail-sections');
+  const btn = document.getElementById('btn-toggle-ventas-detail');
+  const iconOn = document.getElementById('eye-icon-on');
+  const iconOff = document.getElementById('eye-icon-off');
+  const isHidden = sections.classList.toggle('hidden');
+  btn.classList.toggle('hidden-mode', isHidden);
+  iconOn.style.display = isHidden ? 'none' : '';
+  iconOff.style.display = isHidden ? '' : 'none';
 });
 
 // =====================================================
