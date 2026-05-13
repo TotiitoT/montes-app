@@ -4896,15 +4896,17 @@ font-size: 16px;
             </div>
             <div class="field">
               <label>Categoría</label>
-              <select id="prod-category">
-                <option value="cafeteria">Cafetería</option>
-                <option value="pasteleria">Pastelería</option>
-                <option value="tostados">Tostados</option>
-                <option value="tapeo-brunch">Tapeo / Brunch</option>
-                <option value="mocktails">Tragos · Mocktails</option>
-                <option value="cocteles">Tragos · Cócteles</option>
-                <option value="otros">Otros</option>
-              </select>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <select id="prod-category" style="flex:1;"></select>
+                <button class="btn btn-ghost" id="btn-new-category" style="padding:8px 10px; font-size:11px; white-space:nowrap;" title="Crear nuevo rubro">+ Rubro</button>
+              </div>
+              <div id="new-category-form" style="display:none; margin-top:8px;">
+                <div style="display:flex; gap:6px;">
+                  <input type="text" id="new-category-name" placeholder="Nombre del rubro nuevo..." style="flex:1;" />
+                  <button class="btn btn-primary" id="btn-confirm-category" style="padding:8px 12px; font-size:11px;">Crear</button>
+                  <button class="btn btn-ghost" id="btn-cancel-category" style="padding:8px 10px; font-size:11px;">✕</button>
+                </div>
+              </div>
             </div>
             <div class="field">
               <label>Precio</label>
@@ -5616,6 +5618,7 @@ const defaultState = {
     { id: 47, nombre: 'Pomelada', categoria: 'mocktails', precio: 0, tamanos: null }
   ],
   teamMessage: '',
+  categoriasCustom: [],
   costos: {
     alquiler: 0,
     expensas: 0,
@@ -5770,6 +5773,9 @@ function load() {
       }
       if (typeof merged.teamMessage !== 'string') {
         merged.teamMessage = '';
+      }
+      if (!Array.isArray(merged.categoriasCustom)) {
+        merged.categoriasCustom = [];
       }
       return merged;
     }
@@ -7625,8 +7631,16 @@ const PROD_CATEGORIES = [
   { id: 'otros', label: 'Otros' }
 ];
 
+function getAllCategories() {
+  const custom = (state.categoriasCustom || []).map(c => ({ id: c.id, label: c.label }));
+  // Merge: defaults first, then custom (skip duplicates)
+  const defaultIds = new Set(PROD_CATEGORIES.map(c => c.id));
+  return [...PROD_CATEGORIES, ...custom.filter(c => !defaultIds.has(c.id))];
+}
+
 function fmtProdCategory(cat) {
-  const found = PROD_CATEGORIES.find(c => c.id === cat);
+  const all = getAllCategories();
+  const found = all.find(c => c.id === cat);
   return found ? found.label : cat;
 }
 
@@ -7707,7 +7721,7 @@ function renderControlCategoryTabs() {
   // Collect categories that have products
   const cats = new Set();
   state.productos.forEach(p => cats.add(p.categoria));
-  const orderedCats = PROD_CATEGORIES.filter(c => cats.has(c.id));
+  const orderedCats = getAllCategories().filter(c => cats.has(c.id));
 
   container.innerHTML = `
     <button class="cat-tab ${activeCategoryFilter === null ? 'active' : ''}" data-cat-filter="">Todos</button>
@@ -7878,7 +7892,7 @@ function renderCategoriesChart(sales) {
     otros: '#6E8E9E'
   };
 
-  const data = PROD_CATEGORIES
+  const data = getAllCategories()
     .filter(c => byCategory[c.id])
     .map(c => ({
       label: c.label,
@@ -8485,7 +8499,7 @@ function renderSaleCatalog() {
     groups[cat].push(p);
   });
 
-  grid.innerHTML = PROD_CATEGORIES
+  grid.innerHTML = getAllCategories()
     .filter(c => groups[c.id])
     .map(cat => {
       const items = groups[cat.id];
@@ -8890,6 +8904,7 @@ document.getElementById('sale-product-search').addEventListener('input', renderS
 function renderCatalogPage() {
   renderCatalogKPIs();
   renderCatalogList();
+  if (typeof populateCategorySelect === 'function') populateCategorySelect();
 }
 
 function renderCatalogKPIs() {
@@ -8956,7 +8971,7 @@ function renderCatalogList() {
     groups[cat].push(p);
   });
 
-  list.innerHTML = PROD_CATEGORIES
+  list.innerHTML = getAllCategories()
     .filter(c => groups[c.id])
     .map(cat => {
       const items = groups[cat.id];
@@ -9172,6 +9187,57 @@ document.getElementById('prod-price').addEventListener('keydown', e => {
   if (e.key === 'Enter') saveProduct();
 });
 document.getElementById('catalog-search').addEventListener('input', renderCatalogList);
+
+// === Dynamic category select ===
+function populateCategorySelect() {
+  const sel = document.getElementById('prod-category');
+  if (!sel) return;
+  const cats = getAllCategories();
+  const current = sel.value;
+  sel.innerHTML = cats.map(c => `<option value="${c.id}">${escapeHtml(c.label)}</option>`).join('');
+  if (current && cats.some(c => c.id === current)) sel.value = current;
+}
+
+// New rubro form
+document.getElementById('btn-new-category').addEventListener('click', () => {
+  document.getElementById('new-category-form').style.display = 'block';
+  document.getElementById('new-category-name').focus();
+});
+
+document.getElementById('btn-cancel-category').addEventListener('click', () => {
+  document.getElementById('new-category-form').style.display = 'none';
+  document.getElementById('new-category-name').value = '';
+});
+
+document.getElementById('btn-confirm-category').addEventListener('click', () => {
+  const name = document.getElementById('new-category-name').value.trim();
+  if (!name) { alert('Escribí un nombre para el rubro.'); return; }
+  // Create ID from name (lowercase, no spaces)
+  const id = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  // Check if exists
+  if (getAllCategories().some(c => c.id === id)) {
+    alert('Ya existe un rubro con ese nombre.');
+    return;
+  }
+  state.categoriasCustom.push({ id, label: name });
+  save();
+  populateCategorySelect();
+  document.getElementById('prod-category').value = id;
+  document.getElementById('new-category-form').style.display = 'none';
+  document.getElementById('new-category-name').value = '';
+  renderCatalogPage();
+  renderSaleCatalog();
+  renderControlCategoryTabs();
+  showToastMsg(`Rubro "${name}" creado`);
+});
+
+document.getElementById('new-category-name').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('btn-confirm-category').click();
+  if (e.key === 'Escape') document.getElementById('btn-cancel-category').click();
+});
+
+// Populate on load
+populateCategorySelect();
 
 // =====================================================
 // FICHAS TÉCNICAS / RECETAS
