@@ -2801,6 +2801,68 @@ font-family: 'Comfortaa', sans-serif;
     font-size: 14px;
   }
 
+  /* Toolbar right group */
+  .catalog-toolbar-right {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .view-toggle {
+    display: flex;
+    background: var(--paper);
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .view-btn {
+    padding: 6px 8px;
+    border: none;
+    background: transparent;
+    color: var(--ink-faint);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+  }
+
+  .view-btn:hover { color: var(--azul); }
+
+  .view-btn.active {
+    background: var(--nogal);
+    color: var(--cream);
+  }
+
+  /* List view mode */
+  .sale-products-grid.list-mode {
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+  }
+
+  .sale-products-grid.list-mode .sale-product-btn {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    min-height: auto;
+    padding: 10px 14px;
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid var(--line);
+    gap: 10px;
+  }
+
+  .sale-products-grid.list-mode .sale-product-btn:hover {
+    transform: none;
+    box-shadow: none;
+    background: rgba(90, 155, 181, 0.06);
+  }
+
+  .sale-products-grid.list-mode .sale-product-name { flex: 1; min-width: 0; }
+  .sale-products-grid.list-mode .size-badge,
+  .sale-products-grid.list-mode .recipe-info-chip { display: none; }
+
   /* Cart */
   .sale-cart {
     background: var(--paper);
@@ -5238,9 +5300,19 @@ font-size: 16px;
             <div class="control-catalog">
               <div class="control-catalog-toolbar">
                 <div class="control-cat-tabs" id="control-cat-tabs"></div>
-                <div class="search-wrap" style="max-width:140px;">
-                  <svg class="search-icon"><use href="#icon-search"/></svg>
-                  <input type="text" id="sale-product-search" placeholder="Buscar..." />
+                <div class="catalog-toolbar-right">
+                  <div class="view-toggle">
+                    <button class="view-btn active" id="btn-view-grid" title="Cuadrícula">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                    </button>
+                    <button class="view-btn" id="btn-view-list" title="Listado">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1" fill="currentColor"/><circle cx="4" cy="12" r="1" fill="currentColor"/><circle cx="4" cy="18" r="1" fill="currentColor"/></svg>
+                    </button>
+                  </div>
+                  <div class="search-wrap" style="max-width:130px;">
+                    <svg class="search-icon"><use href="#icon-search"/></svg>
+                    <input type="text" id="sale-product-search" placeholder="Buscar..." />
+                  </div>
                 </div>
               </div>
               <div id="sale-catalog-grid" class="control-catalog-grid"></div>
@@ -8062,6 +8134,19 @@ function updateControlTodayStats() {
 
 // === Category tabs (filter catalog by category) ===
 let activeCategoryFilter = null;
+let catalogViewMode = 'grid'; // 'grid' or 'list'
+
+// Calculate product popularity from sales history
+function getProductPopularity() {
+  const counts = {};
+  state.ventas.forEach(v => {
+    if (!Array.isArray(v.items)) return;
+    v.items.forEach(it => {
+      counts[it.productId] = (counts[it.productId] || 0) + (Number(it.qty) || 0);
+    });
+  });
+  return counts;
+}
 
 function renderControlCategoryTabs() {
   const container = document.getElementById('control-cat-tabs');
@@ -8848,6 +8933,14 @@ function renderSaleCatalog() {
     groups[cat].push(p);
   });
 
+  // Sort each group by popularity (most sold first)
+  const popularity = getProductPopularity();
+  Object.values(groups).forEach(items => {
+    items.sort((a, b) => (popularity[b.id] || 0) - (popularity[a.id] || 0));
+  });
+
+  const listClass = catalogViewMode === 'list' ? ' list-mode' : '';
+
   grid.innerHTML = getAllCategories()
     .filter(c => groups[c.id])
     .map(cat => {
@@ -8855,7 +8948,7 @@ function renderSaleCatalog() {
       return `
         <div class="sale-cat-section">
           <div class="sale-cat-label">${cat.label}</div>
-          <div class="sale-products-grid">
+          <div class="sale-products-grid${listClass}">
             ${items.map(p => {
               const hasSizes = Array.isArray(p.tamanos) && p.tamanos.length > 0;
               let priceDisplay;
@@ -9285,6 +9378,20 @@ document.getElementById('sales-period').addEventListener('change', () => {
   renderSalesDashboard();
 });
 document.getElementById('sale-product-search').addEventListener('input', renderSaleCatalog);
+
+// View mode toggle (grid/list)
+document.getElementById('btn-view-grid').addEventListener('click', () => {
+  catalogViewMode = 'grid';
+  document.getElementById('btn-view-grid').classList.add('active');
+  document.getElementById('btn-view-list').classList.remove('active');
+  renderSaleCatalog();
+});
+document.getElementById('btn-view-list').addEventListener('click', () => {
+  catalogViewMode = 'list';
+  document.getElementById('btn-view-list').classList.add('active');
+  document.getElementById('btn-view-grid').classList.remove('active');
+  renderSaleCatalog();
+});
 ['sale-search', 'filter-payment'].forEach(id => {
   document.getElementById(id).addEventListener('input', renderSalesList);
 });
