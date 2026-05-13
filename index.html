@@ -8054,6 +8054,10 @@ function updateControlTodayStats() {
       <div class="today-stat-value">${fmt(avg)}</div>
     </div>
   `;
+  // Respect hidden mode
+  if (typeof ventasHidden !== 'undefined' && ventasHidden) {
+    container.querySelectorAll('.today-stat-value').forEach(el => el.style.visibility = 'hidden');
+  }
 }
 
 // === Category tabs (filter catalog by category) ===
@@ -9285,16 +9289,27 @@ document.getElementById('sale-product-search').addEventListener('input', renderS
   document.getElementById(id).addEventListener('input', renderSalesList);
 });
 
-// Eye toggle: show/hide detail sections
+// Eye toggle: show/hide financial data
+let ventasHidden = false;
 document.getElementById('btn-toggle-ventas-detail').addEventListener('click', () => {
-  const sections = document.getElementById('ventas-detail-sections');
+  ventasHidden = !ventasHidden;
   const btn = document.getElementById('btn-toggle-ventas-detail');
   const iconOn = document.getElementById('eye-icon-on');
   const iconOff = document.getElementById('eye-icon-off');
-  const isHidden = sections.classList.toggle('hidden');
-  btn.classList.toggle('hidden-mode', isHidden);
-  iconOn.style.display = isHidden ? 'none' : '';
-  iconOff.style.display = isHidden ? '' : 'none';
+  btn.classList.toggle('hidden-mode', ventasHidden);
+  iconOn.style.display = ventasHidden ? 'none' : '';
+  iconOff.style.display = ventasHidden ? '' : 'none';
+  // Hide/show detail sections
+  const sections = document.getElementById('ventas-detail-sections');
+  if (sections) sections.classList.toggle('hidden', ventasHidden);
+  // Hide/show today stats values
+  document.querySelectorAll('.today-stat-value').forEach(el => {
+    el.style.visibility = ventasHidden ? 'hidden' : '';
+  });
+  // Hide/show KPI values
+  document.querySelectorAll('#sales-kpis .stat-value, #sales-kpis .stat-delta').forEach(el => {
+    el.style.visibility = ventasHidden ? 'hidden' : '';
+  });
 });
 
 // =====================================================
