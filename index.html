@@ -1732,6 +1732,36 @@ font-family: 'Comfortaa', sans-serif;
   .color-swatch:hover { transform: scale(1.15); }
   .color-swatch.active { border-color: var(--nogal); box-shadow: 0 0 0 1px var(--paper); }
 
+  /* =================== DATA TOOLS (export/import) =================== */
+  .sidebar-data-tools {
+    padding: 8px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border-top: 1px solid rgba(90, 155, 181, 0.1);
+    margin-top: 8px;
+  }
+
+  .data-tool-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    color: rgba(242, 237, 228, 0.4);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .data-tool-btn:hover {
+    color: rgba(242, 237, 228, 0.8);
+    background: rgba(90, 155, 181, 0.1);
+  }
+
   /* =================== SIDEBAR AUTH =================== */
   .sidebar-auth {
     padding: 20px 16px 0;
@@ -4322,6 +4352,18 @@ font-size: 16px;
         </button>
       </div>
     </nav>
+
+    <div class="sidebar-data-tools">
+      <button class="data-tool-btn" id="btn-export-data" title="Descargar backup de todos los datos">
+        <svg width="14" height="14"><use href="#icon-download"/></svg>
+        Exportar datos
+      </button>
+      <label class="data-tool-btn" title="Restaurar datos desde un backup">
+        <svg width="14" height="14"><use href="#icon-plus"/></svg>
+        Importar backup
+        <input type="file" accept=".json" id="btn-import-data" style="display:none;" />
+      </label>
+    </div>
 
     <div class="sidebar-auth">
       <button class="auth-btn" id="auth-toggle">
@@ -7291,6 +7333,55 @@ document.getElementById('btn-logout').addEventListener('click', () => {
   setAuthenticated(false);
   applyAuthMode();
   showToastMsg('Sesión cerrada');
+});
+
+// === Export/Import data ===
+document.getElementById('btn-export-data').addEventListener('click', () => {
+  const exportData = {
+    version: 2,
+    exportDate: new Date().toISOString(),
+    state: state,
+    auth: localStorage.getItem(AUTH_KEY)
+  };
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date();
+  const dateStr = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+  a.href = url;
+  a.download = `montes-backup-${dateStr}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToastMsg('Backup descargado');
+});
+
+document.getElementById('btn-import-data').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!confirm('¿Importar datos desde este backup?\n\nLos datos actuales se van a reemplazar con los del archivo. Si tenés datos que no querés perder, exportalos primero.')) {
+    e.target.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (imported.state) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(imported.state));
+        if (imported.auth) {
+          localStorage.setItem(AUTH_KEY, imported.auth);
+        }
+        showToastMsg('Datos restaurados. Recargando...');
+        setTimeout(() => location.reload(), 1000);
+      } else {
+        alert('El archivo no tiene el formato correcto de backup de Montés.');
+      }
+    } catch (err) {
+      alert('Error al leer el archivo: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
 });
 
 document.getElementById('auth-submit').addEventListener('click', handleAuthSubmit);
