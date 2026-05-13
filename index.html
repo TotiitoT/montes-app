@@ -1732,6 +1732,143 @@ font-family: 'Comfortaa', sans-serif;
   .color-swatch:hover { transform: scale(1.15); }
   .color-swatch.active { border-color: var(--nogal); box-shadow: 0 0 0 1px var(--paper); }
 
+  /* =================== SHIFT CLOSING =================== */
+  .shift-close-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+  }
+
+  .shift-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 20px;
+    transition: all 0.15s ease;
+  }
+
+  .shift-card.active-shift {
+    border-color: var(--azul);
+    box-shadow: 0 2px 12px rgba(90, 155, 181, 0.12);
+  }
+
+  .shift-card.closed {
+    opacity: 0.6;
+    border-color: var(--good);
+  }
+
+  .shift-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .shift-card-name {
+    font-family: 'Comfortaa', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--nogal);
+  }
+
+  .shift-card-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+  }
+
+  .shift-card-badge {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 3px;
+  }
+
+  .shift-badge-open {
+    background: rgba(90, 155, 181, 0.12);
+    color: var(--azul-deep);
+  }
+
+  .shift-badge-closed {
+    background: rgba(61, 139, 85, 0.12);
+    color: var(--good);
+  }
+
+  .shift-card-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .shift-mini-stat {
+    text-align: center;
+    padding: 8px;
+    background: var(--cream-deep);
+    border-radius: 6px;
+  }
+
+  .shift-mini-stat .val {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--nogal);
+  }
+
+  .shift-mini-stat .lbl {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-top: 2px;
+  }
+
+  .btn-close-shift {
+    width: 100%;
+    padding: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    justify-content: center;
+  }
+
+  /* Shift history */
+  .shift-history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px dotted var(--line);
+    font-size: 13px;
+  }
+
+  .shift-history-item:last-child { border-bottom: none; }
+
+  /* Kit descartable */
+  .kit-row {
+    display: grid;
+    grid-template-columns: 2fr 80px 60px 30px;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dotted var(--line);
+  }
+
+  .kit-row:last-child { border-bottom: none; }
+
+  .kit-row select, .kit-row input {
+    background: var(--paper-soft);
+    border: 1px solid var(--line-strong);
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 13px;
+    color: var(--nogal);
+  }
+
+  .kit-row input { text-align: right; font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+
   /* =================== DATA TOOLS (export/import) =================== */
   .sidebar-data-tools {
     padding: 8px 16px;
@@ -3233,12 +3370,13 @@ font-size: 12px;
   }
 
   .control-catalog-toolbar {
-    padding: 14px 18px;
+    padding: 12px 18px;
     background: var(--cream-deep);
     border-bottom: 1px solid var(--line);
     display: flex;
     gap: 10px;
     align-items: center;
+    justify-content: space-between;
     flex-wrap: wrap;
   }
 
@@ -3246,6 +3384,8 @@ font-size: 12px;
     display: flex;
     gap: 4px;
     flex-wrap: wrap;
+    flex: 1;
+    min-width: 0;
   }
 
   .cat-tab {
@@ -3340,6 +3480,62 @@ font-size: 12px;
 
   .cart-tab-btn.active.has-items::after {
     background: var(--gold);
+  }
+
+  .cart-tab-btn.stale {
+    color: var(--gold) !important;
+  }
+
+  .cart-tab-btn.stale::after {
+    background: var(--gold) !important;
+  }
+
+  .cart-tab-btn.old {
+    color: #e8a060 !important;
+    animation: pulse-tab 2s ease-in-out infinite;
+  }
+
+  .cart-tab-btn.old::after {
+    background: #e8a060 !important;
+  }
+
+  @keyframes pulse-tab {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  /* Stale order warning banner */
+  .cart-stale-banner {
+    background: linear-gradient(135deg, rgba(196, 153, 62, 0.12) 0%, rgba(196, 153, 62, 0.06) 100%);
+    border-bottom: 1px solid rgba(196, 153, 62, 0.2);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .cart-stale-text {
+    font-size: 11px;
+    color: var(--gold);
+    font-weight: 600;
+  }
+
+  .btn-stale-dismiss {
+    background: transparent;
+    border: 1px solid rgba(196, 153, 62, 0.3);
+    color: var(--gold);
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+  }
+
+  .btn-stale-dismiss:hover {
+    background: rgba(196, 153, 62, 0.15);
   }
 
   .cart-top {
@@ -5006,11 +5202,11 @@ font-size: 16px;
             <!-- LEFT: catalog with category tabs -->
             <div class="control-catalog">
               <div class="control-catalog-toolbar">
-                <div class="search-wrap" style="flex:1;">
-                  <svg class="search-icon"><use href="#icon-search"/></svg>
-                  <input type="text" id="sale-product-search" placeholder="Buscar producto..." style="width:100%;" />
-                </div>
                 <div class="control-cat-tabs" id="control-cat-tabs"></div>
+                <div class="search-wrap" style="max-width:200px;">
+                  <svg class="search-icon"><use href="#icon-search"/></svg>
+                  <input type="text" id="sale-product-search" placeholder="Buscar..." />
+                </div>
               </div>
               <div id="sale-catalog-grid" class="control-catalog-grid"></div>
             </div>
@@ -5083,6 +5279,15 @@ font-size: 16px;
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- ============ CIERRE DE TURNO ============ -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Cierre de turno</div>
+        </div>
+        <div class="shift-close-grid" id="shift-close-grid"></div>
+        <div id="shift-close-history" style="margin-top: 16px;"></div>
       </div>
 
       <!-- ============ ANÁLISIS · KPIs Y DASHBOARD ============ -->
@@ -5277,6 +5482,20 @@ font-size: 16px;
         </div>
 
         <div id="stock-list"></div>
+      </div>
+
+      <!-- Kit descartable (para llevar) -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Kit descartable (para llevar)</div>
+          <div class="section-hint">Se descuenta automáticamente con cada venta "Para llevar"</div>
+        </div>
+        <div id="kit-descartable-list"></div>
+        <button class="btn btn-ghost" id="btn-add-kit-item" style="margin-top:10px;">
+          <svg width="14" height="14"><use href="#icon-plus"/></svg>
+          Agregar item al kit
+        </button>
+        <div id="kit-descartable-stats" style="margin-top:14px;"></div>
       </div>
     </section>
 
@@ -5619,6 +5838,12 @@ const defaultState = {
   ],
   teamMessage: '',
   categoriasCustom: [],
+  turnoDefs: [
+    { id: 'manana', label: 'Mañana', inicio: '08:00', fin: '12:00' },
+    { id: 'tarde', label: 'Tarde', inicio: '16:30', fin: '20:00' }
+  ],
+  cierresTurno: [],
+  kitDescartable: [],
   costos: {
     alquiler: 0,
     expensas: 0,
@@ -5776,6 +6001,15 @@ function load() {
       }
       if (!Array.isArray(merged.categoriasCustom)) {
         merged.categoriasCustom = [];
+      }
+      if (!Array.isArray(merged.turnoDefs)) {
+        merged.turnoDefs = JSON.parse(JSON.stringify(defaultState.turnoDefs));
+      }
+      if (!Array.isArray(merged.cierresTurno)) {
+        merged.cierresTurno = [];
+      }
+      if (!Array.isArray(merged.kitDescartable)) {
+        merged.kitDescartable = [];
       }
       return merged;
     }
@@ -7564,11 +7798,48 @@ const CART_TABS = [
 ];
 
 let saleCarts = {};
-CART_TABS.forEach(t => saleCarts[t.id] = []);
+let cartTimestamps = {}; // When each tab's cart was first populated
+CART_TABS.forEach(t => { saleCarts[t.id] = []; cartTimestamps[t.id] = null; });
 let activeTab = 'mostrador';
 
-// Getter for current cart
+// Persist open carts across page reloads
+const CARTS_KEY = 'montes-open-carts';
+function saveOpenCarts() {
+  localStorage.setItem(CARTS_KEY, JSON.stringify({ carts: saleCarts, timestamps: cartTimestamps }));
+}
+function loadOpenCarts() {
+  try {
+    const raw = localStorage.getItem(CARTS_KEY);
+    if (raw) {
+      const data = JSON.parse(raw);
+      if (data.carts) saleCarts = data.carts;
+      if (data.timestamps) cartTimestamps = data.timestamps;
+      // Ensure all tabs exist
+      CART_TABS.forEach(t => {
+        if (!saleCarts[t.id]) saleCarts[t.id] = [];
+        if (!cartTimestamps[t.id]) cartTimestamps[t.id] = null;
+      });
+    }
+  } catch(e) {}
+}
+loadOpenCarts();
+
 function getSaleCart() { return saleCarts[activeTab]; }
+
+function getCartAge(tabId) {
+  const ts = cartTimestamps[tabId];
+  if (!ts) return 0;
+  return (Date.now() - ts) / 1000 / 60; // minutes
+}
+
+function fmtCartAge(tabId) {
+  const mins = Math.floor(getCartAge(tabId));
+  if (mins < 1) return 'ahora';
+  if (mins < 60) return `${mins}m`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return `${h}h${m > 0 ? ' ' + m + 'm' : ''}`;
+}
 
 function switchTab(tabId) {
   activeTab = tabId;
@@ -7586,7 +7857,18 @@ function renderCartTabs() {
     const itemCount = cart.reduce((s, i) => s + i.qty, 0);
     const isActive = t.id === activeTab;
     const hasItems = itemCount > 0;
-    return `<button class="cart-tab-btn ${isActive ? 'active' : ''} ${hasItems ? 'has-items' : ''}" data-tab="${t.id}">${t.label}</button>`;
+    const age = getCartAge(t.id);
+    const isStale = hasItems && age > 30; // >30 min = warning
+    const isOld = hasItems && age > 120; // >2h = danger
+    const cls = [
+      'cart-tab-btn',
+      isActive ? 'active' : '',
+      hasItems ? 'has-items' : '',
+      isStale ? 'stale' : '',
+      isOld ? 'old' : ''
+    ].filter(Boolean).join(' ');
+    const ageLabel = hasItems ? ` · ${fmtCartAge(t.id)}` : '';
+    return `<button class="${cls}" data-tab="${t.id}">${t.label}${ageLabel}</button>`;
   }).join('');
 
   container.querySelectorAll('[data-tab]').forEach(btn => {
@@ -7595,9 +7877,34 @@ function renderCartTabs() {
 
   if (labelEl) {
     const tab = CART_TABS.find(t => t.id === activeTab);
-    labelEl.textContent = tab ? tab.label : 'Pedido';
+    const cart = getSaleCart();
+    const hasItems = cart.length > 0;
+    const age = getCartAge(activeTab);
+    if (hasItems && age > 30) {
+      labelEl.textContent = `${tab.label} · ⚠ Abierto hace ${fmtCartAge(activeTab)}`;
+    } else {
+      labelEl.textContent = tab ? tab.label : 'Pedido';
+    }
   }
 }
+
+// Refresh tab ages every minute
+setInterval(() => {
+  const hasOpenCarts = CART_TABS.some(t => (saleCarts[t.id] || []).length > 0);
+  if (hasOpenCarts) renderCartTabs();
+}, 60000);
+
+// On load: warn about old open carts
+setTimeout(() => {
+  const oldTabs = CART_TABS.filter(t => {
+    const cart = saleCarts[t.id] || [];
+    return cart.length > 0 && getCartAge(t.id) > 60;
+  });
+  if (oldTabs.length > 0) {
+    const names = oldTabs.map(t => `${t.label} (${fmtCartAge(t.id)})`).join(', ');
+    showToastMsg(`⚠ Hay pedidos sin cerrar: ${names}`);
+  }
+}, 2000);
 
 function filterSalesByPeriod(period) {
   const now = new Date();
@@ -7651,6 +7958,7 @@ function getProducto(id) {
 function renderSalesPage() {
   renderControlPanelHeader();
   renderControlCategoryTabs();
+  renderShiftCloseSection();
   renderSalesKPIs();
   renderSalesDashboard();
   renderSaleCatalog();
@@ -8609,6 +8917,9 @@ function addToCart(productId, tamano) {
   } else {
     cart.push({ productId, tamano, qty: 1 });
   }
+  // Set timestamp on first item
+  if (!cartTimestamps[activeTab]) cartTimestamps[activeTab] = Date.now();
+  saveOpenCarts();
   renderSaleCart();
   renderCartTabs();
 }
@@ -8620,13 +8931,18 @@ function changeCartQty(cartIdx, delta) {
   item.qty += delta;
   if (item.qty <= 0) {
     cart.splice(cartIdx, 1);
+    if (cart.length === 0) cartTimestamps[activeTab] = null;
   }
+  saveOpenCarts();
   renderSaleCart();
   renderCartTabs();
 }
 
 function removeFromCart(cartIdx) {
-  getSaleCart().splice(cartIdx, 1);
+  const cart = getSaleCart();
+  cart.splice(cartIdx, 1);
+  if (cart.length === 0) cartTimestamps[activeTab] = null;
+  saveOpenCarts();
   renderSaleCart();
   renderCartTabs();
 }
@@ -8642,6 +8958,18 @@ function renderSaleCart() {
   const totalItems = cart.reduce((s, i) => s + i.qty, 0);
   if (countEl) countEl.textContent = `${totalItems} item${totalItems === 1 ? '' : 's'}`;
 
+  // Stale order banner
+  const age = getCartAge(activeTab);
+  let staleBanner = '';
+  if (cart.length > 0 && age > 15) {
+    staleBanner = `
+      <div class="cart-stale-banner">
+        <span class="cart-stale-text">⚠ Abierto hace ${fmtCartAge(activeTab)}</span>
+        <button class="btn-stale-dismiss" id="btn-already-paid">Ya se cobró · Cerrar</button>
+      </div>
+    `;
+  }
+
   if (cart.length === 0) {
     container.innerHTML = '<div class="cart-empty">Tocá un producto para agregarlo.</div>';
     totalEl.textContent = '$0';
@@ -8650,7 +8978,7 @@ function renderSaleCart() {
   }
 
   let total = 0;
-  container.innerHTML = cart.map((item, idx) => {
+  container.innerHTML = staleBanner + cart.map((item, idx) => {
     const prod = getProducto(item.productId);
     if (!prod) return '';
     const unitPrice = item.tamano ? Number(item.tamano.precio) || 0 : Number(prod.precio) || 0;
@@ -8685,10 +9013,23 @@ function renderSaleCart() {
     b.addEventListener('click', e => changeCartQty(Number(e.currentTarget.dataset.cartMinus), -1)));
   container.querySelectorAll('[data-cart-remove]').forEach(b =>
     b.addEventListener('click', e => removeFromCart(Number(e.currentTarget.dataset.cartRemove))));
+
+  // "Ya se cobró" button — closes without recording a new sale
+  const alreadyPaidBtn = container.querySelector('#btn-already-paid');
+  if (alreadyPaidBtn) {
+    alreadyPaidBtn.addEventListener('click', () => {
+      if (confirm('¿Cerrar este pedido sin registrar venta?\n\nUsá esto si ya se cobró por fuera del sistema.')) {
+        clearCart();
+        showToastMsg('Pedido cerrado sin registrar');
+      }
+    });
+  }
 }
 
 function clearCart() {
   saleCarts[activeTab] = [];
+  cartTimestamps[activeTab] = null;
+  saveOpenCarts();
   renderSaleCart();
   renderCartTabs();
 }
@@ -8746,6 +9087,16 @@ function saveSale() {
 
   // Auto-deduct stock based on recipes
   const stockResult = deductStockForSaleItems(items);
+
+  // Auto-deduct disposable kit for takeaway sales
+  if (tipoConsumo === 'llevar') {
+    const kitDeductions = deductKitDescartable();
+    kitDeductions.forEach(d => {
+      const existing = stockResult.deductions.find(x => x.name === d.name);
+      if (existing) { existing.qty += d.qty; }
+      else { stockResult.deductions.push(d); }
+    });
+  }
 
   save();
 
@@ -9555,6 +9906,240 @@ document.getElementById('recipes-search').addEventListener('input', renderRecipe
 document.getElementById('recipes-filter').addEventListener('change', renderRecipesList);
 
 // =====================================================
+// CIERRE DE TURNO
+// =====================================================
+
+function getCurrentShiftId() {
+  const now = new Date();
+  const hhmm = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  for (const t of state.turnoDefs) {
+    if (hhmm >= t.inicio && hhmm <= t.fin) return t.id;
+  }
+  return null;
+}
+
+function getTodayStr() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+}
+
+function getSalesForShift(shiftDef, dateStr) {
+  return state.ventas.filter(v => {
+    if (v.fecha !== dateStr || !v.creado) return false;
+    const d = new Date(v.creado);
+    const hhmm = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    return hhmm >= shiftDef.inicio && hhmm <= shiftDef.fin;
+  });
+}
+
+function isShiftClosedToday(shiftId) {
+  const today = getTodayStr();
+  return state.cierresTurno.some(c => c.fecha === today && c.turnoId === shiftId);
+}
+
+function renderShiftCloseSection() {
+  const grid = document.getElementById('shift-close-grid');
+  const history = document.getElementById('shift-close-history');
+  if (!grid) return;
+
+  const today = getTodayStr();
+  const currentShift = getCurrentShiftId();
+
+  grid.innerHTML = state.turnoDefs.map(t => {
+    const sales = getSalesForShift(t, today);
+    const total = sales.reduce((s, v) => s + (Number(v.monto) || 0), 0);
+    const count = sales.length;
+    const efectivo = sales.filter(v => v.metodo === 'efectivo').reduce((s, v) => s + (Number(v.monto) || 0), 0);
+    const llevar = sales.filter(v => v.tipoConsumo === 'llevar').length;
+    const isClosed = isShiftClosedToday(t.id);
+    const isActive = t.id === currentShift;
+
+    return `
+      <div class="shift-card ${isActive ? 'active-shift' : ''} ${isClosed ? 'closed' : ''}">
+        <div class="shift-card-header">
+          <div>
+            <div class="shift-card-name">${escapeHtml(t.label)}</div>
+            <div class="shift-card-time">${t.inicio} – ${t.fin}</div>
+          </div>
+          <span class="shift-card-badge ${isClosed ? 'shift-badge-closed' : 'shift-badge-open'}">
+            ${isClosed ? '✓ Cerrado' : isActive ? 'En curso' : 'Abierto'}
+          </span>
+        </div>
+        <div class="shift-card-stats">
+          <div class="shift-mini-stat"><div class="val">${fmt(total)}</div><div class="lbl">Total</div></div>
+          <div class="shift-mini-stat"><div class="val">${count}</div><div class="lbl">Ventas</div></div>
+          <div class="shift-mini-stat"><div class="val">${fmt(efectivo)}</div><div class="lbl">Efectivo</div></div>
+          <div class="shift-mini-stat"><div class="val">${llevar}</div><div class="lbl">Llevar</div></div>
+        </div>
+        ${isClosed
+          ? '<div style="text-align:center;font-size:11px;color:var(--good);font-weight:600;">Turno cerrado ✓</div>'
+          : `<button class="btn btn-primary btn-close-shift" data-close-shift="${t.id}">Cerrar turno ${escapeHtml(t.label)}</button>`
+        }
+      </div>
+    `;
+  }).join('');
+
+  grid.querySelectorAll('[data-close-shift]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const shiftId = e.currentTarget.dataset.closeShift;
+      closeShift(shiftId);
+    });
+  });
+
+  // History: last 10 closes
+  if (history) {
+    const recent = [...state.cierresTurno].sort((a, b) => (b.fecha + b.turnoId).localeCompare(a.fecha + a.turnoId)).slice(0, 10);
+    if (recent.length === 0) {
+      history.innerHTML = '';
+    } else {
+      history.innerHTML = `
+        <div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--ink-faint);font-weight:600;margin-bottom:8px;">Últimos cierres</div>
+        ${recent.map(c => `
+          <div class="shift-history-item">
+            <span>${fmtDatePretty(c.fecha)} · ${escapeHtml(c.turnoLabel)}</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-weight:600;">${fmt(c.total)} · ${c.count} ventas</span>
+          </div>
+        `).join('')}
+      `;
+    }
+  }
+}
+
+function closeShift(shiftId) {
+  const def = state.turnoDefs.find(t => t.id === shiftId);
+  if (!def) return;
+  const today = getTodayStr();
+
+  if (isShiftClosedToday(shiftId)) {
+    alert(`El turno ${def.label} ya fue cerrado hoy.`);
+    return;
+  }
+
+  const sales = getSalesForShift(def, today);
+  const total = sales.reduce((s, v) => s + (Number(v.monto) || 0), 0);
+  const count = sales.length;
+  const efectivo = sales.filter(v => v.metodo === 'efectivo').reduce((s, v) => s + (Number(v.monto) || 0), 0);
+  const transfer = total - efectivo;
+  const local = sales.filter(v => v.tipoConsumo === 'local' || !v.tipoConsumo).length;
+  const llevar = sales.filter(v => v.tipoConsumo === 'llevar').length;
+
+  const msg = `¿Cerrar turno ${def.label} (${def.inicio}–${def.fin})?\n\n` +
+    `Total: ${fmt(total)}\n` +
+    `Ventas: ${count}\n` +
+    `Efectivo: ${fmt(efectivo)} · Transferencia: ${fmt(transfer)}\n` +
+    `Local: ${local} · Llevar: ${llevar}`;
+
+  if (!confirm(msg)) return;
+
+  state.cierresTurno.push({
+    id: Date.now(),
+    fecha: today,
+    turnoId: shiftId,
+    turnoLabel: def.label,
+    horario: `${def.inicio}–${def.fin}`,
+    total,
+    count,
+    efectivo,
+    transfer,
+    local,
+    llevar,
+    cerradoEn: new Date().toISOString()
+  });
+  save();
+  renderShiftCloseSection();
+  showToastMsg(`Turno ${def.label} cerrado · ${fmt(total)}`);
+}
+
+// =====================================================
+// KIT DESCARTABLE (para llevar)
+// =====================================================
+
+function renderKitDescartable() {
+  const list = document.getElementById('kit-descartable-list');
+  const stats = document.getElementById('kit-descartable-stats');
+  if (!list) return;
+
+  const descartableStock = state.stock.filter(s => s.category === 'descartables');
+
+  if (state.kitDescartable.length === 0 && descartableStock.length === 0) {
+    list.innerHTML = '<div style="padding:16px;text-align:center;color:var(--ink-faint);font-style:italic;font-size:13px;">Cargá items de stock con categoría "Descartables" primero, después armalos como kit acá.</div>';
+    if (stats) stats.innerHTML = '';
+    return;
+  }
+
+  list.innerHTML = state.kitDescartable.map((item, idx) => {
+    const stockItem = state.stock.find(s => s.id === item.stockId);
+    return `
+      <div class="kit-row">
+        <select data-kit-idx="${idx}" data-kit-field="stockId">
+          <option value="">— Elegí del stock —</option>
+          ${state.stock.filter(s => s.category === 'descartables').map(s =>
+            `<option value="${s.id}" ${s.id === item.stockId ? 'selected' : ''}>${escapeHtml(s.name)}</option>`
+          ).join('')}
+        </select>
+        <input type="number" step="1" min="1" data-kit-idx="${idx}" data-kit-field="qty" value="${item.qty || 1}" placeholder="1" />
+        <span style="font-size:11px;color:var(--ink-faint);">${stockItem ? (stockItem.unit || 'u') : 'u'} c/venta</span>
+        <button class="btn-icon" data-delete-kit="${idx}" title="Quitar">
+          <svg><use href="#icon-trash"/></svg>
+        </button>
+      </div>
+    `;
+  }).join('');
+
+  // Events
+  list.querySelectorAll('select[data-kit-field="stockId"]').forEach(sel => {
+    sel.addEventListener('change', e => {
+      const idx = Number(e.target.dataset.kitIdx);
+      state.kitDescartable[idx].stockId = e.target.value ? Number(e.target.value) : null;
+      save();
+      renderKitDescartable();
+    });
+  });
+  list.querySelectorAll('input[data-kit-field="qty"]').forEach(inp => {
+    inp.addEventListener('change', e => {
+      const idx = Number(e.target.dataset.kitIdx);
+      state.kitDescartable[idx].qty = Number(e.target.value) || 1;
+      save();
+    });
+  });
+  list.querySelectorAll('[data-delete-kit]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const idx = Number(e.currentTarget.dataset.deleteKit);
+      state.kitDescartable.splice(idx, 1);
+      save();
+      renderKitDescartable();
+    });
+  });
+
+  // Stats: how many takeaways today and disposable usage
+  if (stats) {
+    const today = getTodayStr();
+    const todayLlevar = state.ventas.filter(v => v.fecha === today && v.tipoConsumo === 'llevar').length;
+    stats.innerHTML = `<div style="font-size:12px;color:var(--ink-faint);margin-top:8px;">Hoy: <strong>${todayLlevar}</strong> ventas para llevar</div>`;
+  }
+}
+
+document.getElementById('btn-add-kit-item').addEventListener('click', () => {
+  state.kitDescartable.push({ stockId: null, qty: 1 });
+  save();
+  renderKitDescartable();
+});
+
+// Deduct disposable kit on takeaway sale
+function deductKitDescartable() {
+  if (state.kitDescartable.length === 0) return [];
+  const deductions = [];
+  state.kitDescartable.forEach(item => {
+    if (!item.stockId || !item.qty) return;
+    const stockItem = state.stock.find(s => s.id === item.stockId);
+    if (!stockItem) return;
+    stockItem.current = Math.max(0, (Number(stockItem.current) || 0) - item.qty);
+    deductions.push({ name: stockItem.name, qty: item.qty, unit: stockItem.unit || 'u' });
+  });
+  return deductions;
+}
+
+// =====================================================
 // STOCK
 // =====================================================
 
@@ -9581,6 +10166,7 @@ function renderStockPage() {
   renderStockKPIs();
   renderCriticalAlerts();
   renderStockList();
+  renderKitDescartable();
 }
 
 function updateStockProviderDropdowns() {
