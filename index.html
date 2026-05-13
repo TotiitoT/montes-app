@@ -1734,27 +1734,25 @@ font-family: 'Comfortaa', sans-serif;
 
   /* =================== EYE TOGGLE (show/hide detail) =================== */
   .btn-eye-toggle {
-    background: var(--paper);
-    border: 1px solid var(--line-strong);
+    background: rgba(90, 155, 181, 0.15);
+    border: 1px solid rgba(90, 155, 181, 0.25);
     border-radius: 8px;
-    padding: 10px 12px;
+    padding: 8px 10px;
     cursor: pointer;
-    color: var(--ink-faint);
+    color: rgba(242, 237, 228, 0.5);
     transition: all 0.15s ease;
     flex-shrink: 0;
-    margin-top: 8px;
   }
 
   .btn-eye-toggle:hover {
-    color: var(--azul);
-    border-color: var(--azul);
-    background: rgba(90, 155, 181, 0.06);
+    color: var(--cream);
+    background: rgba(90, 155, 181, 0.25);
   }
 
   .btn-eye-toggle.hidden-mode {
-    background: var(--nogal);
-    border-color: var(--nogal);
-    color: var(--cream);
+    background: rgba(196, 153, 62, 0.25);
+    border-color: rgba(196, 153, 62, 0.4);
+    color: var(--gold);
   }
 
   .ventas-detail-sections {
@@ -3407,10 +3405,10 @@ font-size: 12px;
     background: var(--cream-deep);
     border-bottom: 1px solid var(--line);
     display: flex;
-    gap: 10px;
+    gap: 8px;
     align-items: center;
-    justify-content: space-between;
     flex-wrap: wrap;
+    overflow: hidden;
   }
 
   .control-cat-tabs {
@@ -5212,16 +5210,10 @@ font-size: 16px;
 
     <!-- ============ VENTAS ============ -->
     <section class="page" id="page-ventas">
-      <header class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
-        <div>
-          <div class="page-eyebrow">Panel de control · Caja</div>
-          <h1 class="page-title">Ventas<br><em>del día.</em></h1>
-          <p class="page-subtitle">Despachá rápido desde el mostrador.</p>
-        </div>
-        <button class="btn-eye-toggle" id="btn-toggle-ventas-detail" title="Mostrar/ocultar análisis y datos">
-          <svg width="20" height="20" id="eye-icon-on"><use href="#icon-eye"/></svg>
-          <svg width="20" height="20" id="eye-icon-off" style="display:none;"><use href="#icon-eye-off"/></svg>
-        </button>
+      <header class="page-header">
+        <div class="page-eyebrow">Panel de control · Caja</div>
+        <h1 class="page-title">Ventas<br><em>del día.</em></h1>
+        <p class="page-subtitle">Despachá rápido desde el mostrador.</p>
       </header>
 
       <!-- ============ PANEL DE CONTROL · NUEVA VENTA ============ -->
@@ -5234,6 +5226,10 @@ font-size: 16px;
               <div class="clock-date" id="control-clock-date">—</div>
             </div>
             <div class="control-today-stats" id="control-today-stats"></div>
+            <button class="btn-eye-toggle" id="btn-toggle-ventas-detail" title="Mostrar/ocultar análisis">
+              <svg width="18" height="18" id="eye-icon-on"><use href="#icon-eye"/></svg>
+              <svg width="18" height="18" id="eye-icon-off" style="display:none;"><use href="#icon-eye-off"/></svg>
+            </button>
           </div>
 
           <!-- Body: catalog (left big) + cart (right) -->
@@ -5242,7 +5238,7 @@ font-size: 16px;
             <div class="control-catalog">
               <div class="control-catalog-toolbar">
                 <div class="control-cat-tabs" id="control-cat-tabs"></div>
-                <div class="search-wrap" style="max-width:200px;">
+                <div class="search-wrap" style="max-width:140px;">
                   <svg class="search-icon"><use href="#icon-search"/></svg>
                   <input type="text" id="sale-product-search" placeholder="Buscar..." />
                 </div>
