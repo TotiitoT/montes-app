@@ -7867,7 +7867,7 @@ function generateDailyReport() {
   Café Montés · San Martín de los Andes · Generado ${now.toLocaleString('es-AR')}
 </div>
 
-<script>window.onload = () => window.print();<\/script>
+<script>document.title = 'Montés · Informe ' + '${today}';<\/script>
 </body></html>`;
 
   const w = window.open('', '_blank');
@@ -7875,7 +7875,15 @@ function generateDailyReport() {
     w.document.write(html);
     w.document.close();
   } else {
-    alert('El navegador bloqueó la ventana emergente. Permití las ventanas emergentes para este sitio.');
+    // Fallback: download as HTML file
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'montes-informe-' + today + '.html';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToastMsg('Informe descargado');
   }
 }
 
