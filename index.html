@@ -1732,6 +1732,128 @@ font-family: 'Comfortaa', sans-serif;
   .color-swatch:hover { transform: scale(1.15); }
   .color-swatch.active { border-color: var(--nogal); box-shadow: 0 0 0 1px var(--paper); }
 
+  /* =================== CAJA SEMANAL =================== */
+  .caja-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    background: var(--paper);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+  }
+
+  .caja-table th {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 700;
+    padding: 10px 12px;
+    text-align: right;
+    border-bottom: 2px solid var(--line);
+    background: var(--cream-deep);
+  }
+
+  .caja-table th:first-child { text-align: left; }
+
+  .caja-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+
+  .caja-table td:first-child {
+    text-align: left;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    color: var(--nogal);
+  }
+
+  .caja-table tr:last-child td { border-bottom: none; }
+
+  .caja-table tr:hover td { background: rgba(90, 155, 181, 0.03); }
+
+  .caja-table .caja-today td {
+    background: rgba(90, 155, 181, 0.06);
+    font-weight: 600;
+    color: var(--nogal);
+  }
+
+  .caja-table .caja-total td {
+    border-top: 2px solid var(--nogal);
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--nogal);
+    background: var(--cream-deep);
+  }
+
+  .caja-acum-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .caja-acum {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 20px;
+    text-align: center;
+  }
+
+  .caja-acum.acum-efectivo {
+    border-left: 4px solid var(--good);
+  }
+
+  .caja-acum.acum-transfer {
+    border-left: 4px solid var(--gold);
+  }
+
+  .caja-acum.acum-total {
+    border-left: 4px solid var(--azul);
+  }
+
+  .caja-acum-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--nogal);
+  }
+
+  .caja-acum-label {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 700;
+    margin-top: 4px;
+  }
+
+  .caja-bar {
+    display: flex;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 16px;
+    background: var(--cream-deep);
+  }
+
+  .caja-bar-efvo {
+    background: var(--good);
+    transition: width 0.3s ease;
+  }
+
+  .caja-bar-transf {
+    background: var(--gold);
+    transition: width 0.3s ease;
+  }
+
   /* =================== EYE TOGGLE (show/hide detail) =================== */
   .btn-eye-toggle {
     background: rgba(90, 155, 181, 0.15);
@@ -5402,6 +5524,15 @@ font-size: 16px;
         <div id="shift-close-history" style="margin-top: 16px;"></div>
       </div>
 
+      <!-- ============ CAJA SEMANAL ============ -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Caja semanal</div>
+          <select class="period-select" id="caja-week-select"></select>
+        </div>
+        <div id="caja-semanal-content"></div>
+      </div>
+
       <!-- ============ ANÁLISIS · KPIs Y DASHBOARD ============ -->
       <div class="section">
         <div class="section-header">
@@ -8169,6 +8300,157 @@ setTimeout(() => {
   }
 }, 2000);
 
+// =====================================================
+// CAJA SEMANAL
+// =====================================================
+
+function getWeekDates(offsetWeeks) {
+  const now = new Date();
+  const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1; // Monday = 0
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - dayOfWeek - (offsetWeeks * 7));
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    days.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
+  }
+  return days;
+}
+
+function getWeekLabel(offsetWeeks) {
+  const days = getWeekDates(offsetWeeks);
+  const start = new Date(days[0] + 'T00:00:00');
+  const end = new Date(days[6] + 'T00:00:00');
+  const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  return `${start.getDate()} ${meses[start.getMonth()]} – ${end.getDate()} ${meses[end.getMonth()]}`;
+}
+
+let cajaWeekOffset = 0;
+
+function renderCajaWeekSelect() {
+  const sel = document.getElementById('caja-week-select');
+  if (!sel) return;
+  sel.innerHTML = '';
+  for (let i = 0; i < 6; i++) {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = i === 0 ? `Esta semana (${getWeekLabel(0)})` : getWeekLabel(i);
+    sel.appendChild(opt);
+  }
+  sel.value = cajaWeekOffset;
+  sel.addEventListener('change', () => {
+    cajaWeekOffset = Number(sel.value);
+    renderCajaSemanal();
+  });
+}
+
+function renderCajaSemanal() {
+  const container = document.getElementById('caja-semanal-content');
+  if (!container) return;
+
+  const weekDays = getWeekDates(cajaWeekOffset);
+  const today = getTodayStr();
+  const diasNombres = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+
+  let weekEfvo = 0, weekTransf = 0, weekTotal = 0, weekCount = 0;
+
+  const rows = weekDays.map((dateStr, idx) => {
+    const daySales = state.ventas.filter(v => v.fecha === dateStr);
+    const dayTotal = daySales.reduce((s, v) => s + (Number(v.monto) || 0), 0);
+    const dayEfvo = daySales.filter(v => v.metodo === 'efectivo').reduce((s, v) => s + (Number(v.monto) || 0), 0);
+    const dayTransf = daySales.filter(v => v.metodo === 'transferencia').reduce((s, v) => s + (Number(v.monto) || 0), 0);
+    const dayCount = daySales.length;
+
+    // By shift
+    const shiftData = state.turnoDefs.map(t => {
+      const ss = daySales.filter(v => {
+        if (!v.creado) return false;
+        const d = new Date(v.creado);
+        const hhmm = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+        return hhmm >= t.inicio && hhmm <= t.fin;
+      });
+      return {
+        efvo: ss.filter(v => v.metodo === 'efectivo').reduce((s, v) => s + (Number(v.monto) || 0), 0),
+        transf: ss.filter(v => v.metodo === 'transferencia').reduce((s, v) => s + (Number(v.monto) || 0), 0)
+      };
+    });
+
+    weekEfvo += dayEfvo;
+    weekTransf += dayTransf;
+    weekTotal += dayTotal;
+    weekCount += dayCount;
+
+    const isToday = dateStr === today;
+    const d = new Date(dateStr + 'T00:00:00');
+    const dayLabel = `${diasNombres[idx]} ${d.getDate()}`;
+
+    const hasData = dayCount > 0;
+
+    return `<tr class="${isToday ? 'caja-today' : ''}">
+      <td>${dayLabel}${isToday ? ' · hoy' : ''}</td>
+      ${shiftData.map(s => `
+        <td style="color:var(--good);">${s.efvo ? fmt(s.efvo) : '–'}</td>
+        <td style="color:var(--gold);">${s.transf ? fmt(s.transf) : '–'}</td>
+      `).join('')}
+      <td style="color:var(--good);">${hasData ? fmt(dayEfvo) : '–'}</td>
+      <td style="color:var(--gold);">${hasData ? fmt(dayTransf) : '–'}</td>
+      <td style="font-weight:700;color:var(--nogal);">${hasData ? fmt(dayTotal) : '–'}</td>
+    </tr>`;
+  });
+
+  const pctEfvo = weekTotal > 0 ? (weekEfvo / weekTotal * 100) : 0;
+
+  container.innerHTML = `
+    <table class="caja-table">
+      <tr>
+        <th>Día</th>
+        ${state.turnoDefs.map(t => `<th colspan="2">${t.label}</th>`).join('')}
+        <th>Efvo total</th>
+        <th>Transf total</th>
+        <th>Total día</th>
+      </tr>
+      <tr>
+        <th></th>
+        ${state.turnoDefs.map(() => `<th>Efvo</th><th>Transf</th>`).join('')}
+        <th></th><th></th><th></th>
+      </tr>
+      ${rows.join('')}
+      <tr class="caja-total">
+        <td>Acumulado semanal</td>
+        ${state.turnoDefs.map(() => `<td></td><td></td>`).join('')}
+        <td style="color:var(--good);">${fmt(weekEfvo)}</td>
+        <td style="color:var(--gold);">${fmt(weekTransf)}</td>
+        <td>${fmt(weekTotal)}</td>
+      </tr>
+    </table>
+
+    <div class="caja-acum-grid">
+      <div class="caja-acum acum-efectivo">
+        <div class="caja-acum-val">${fmt(weekEfvo)}</div>
+        <div class="caja-acum-label">Efectivo semanal</div>
+      </div>
+      <div class="caja-acum acum-transfer">
+        <div class="caja-acum-val">${fmt(weekTransf)}</div>
+        <div class="caja-acum-label">Transferencias semanal</div>
+      </div>
+      <div class="caja-acum acum-total">
+        <div class="caja-acum-val">${fmt(weekTotal)}</div>
+        <div class="caja-acum-label">Total semanal · ${weekCount} ventas</div>
+      </div>
+    </div>
+
+    <div class="caja-bar">
+      <div class="caja-bar-efvo" style="width:${pctEfvo}%;"></div>
+      <div class="caja-bar-transf" style="width:${100-pctEfvo}%;"></div>
+    </div>
+    <div class="chart-legend" style="margin-top:8px;">
+      <div class="legend-pill"><span class="legend-swatch" style="background:var(--good);"></span>Efectivo ${pctEfvo.toFixed(0)}%</div>
+      <div class="legend-pill"><span class="legend-swatch" style="background:var(--gold);"></span>Transferencia ${(100-pctEfvo).toFixed(0)}%</div>
+    </div>
+  `;
+}
+
 function filterSalesByPeriod(period) {
   const now = new Date();
   const today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
@@ -8222,6 +8504,8 @@ function renderSalesPage() {
   renderControlPanelHeader();
   renderControlCategoryTabs();
   renderShiftCloseSection();
+  renderCajaWeekSelect();
+  renderCajaSemanal();
   renderSalesKPIs();
   renderSalesDashboard();
   renderSaleCatalog();
