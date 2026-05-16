@@ -10561,6 +10561,7 @@ function renderShiftCloseSection() {
     const efectivo = sales.filter(v => v.metodo === 'efectivo').reduce((s, v) => s + (Number(v.monto) || 0), 0);
     const llevar = sales.filter(v => v.tipoConsumo === 'llevar').length;
     const isClosed = isShiftClosedToday(t.id);
+    const closedData = state.cierresTurno.find(c => c.fecha === today && c.turnoId === t.id);
     const isActive = t.id === currentShift;
 
     return `
@@ -10581,7 +10582,10 @@ function renderShiftCloseSection() {
           <div class="shift-mini-stat"><div class="val">${llevar}</div><div class="lbl">Llevar</div></div>
         </div>
         ${isClosed
-          ? '<div style="text-align:center;font-size:11px;color:var(--good);font-weight:600;">Turno cerrado ✓</div>'
+          ? `<div style="text-align:center;">
+              <div style="font-size:11px;color:var(--good);font-weight:600;margin-bottom:8px;">Turno cerrado ✓ · ${fmt(closedData ? closedData.total : 0)}</div>
+              <button class="btn btn-ghost" data-undo-shift="${t.id}" style="font-size:11px;padding:6px 12px;">Deshacer cierre</button>
+            </div>`
           : `<button class="btn btn-primary btn-close-shift" data-close-shift="${t.id}">Cerrar turno ${escapeHtml(t.label)}</button>`
         }
       </div>
@@ -10592,6 +10596,13 @@ function renderShiftCloseSection() {
     btn.addEventListener('click', e => {
       const shiftId = e.currentTarget.dataset.closeShift;
       closeShift(shiftId);
+    });
+  });
+
+  grid.querySelectorAll('[data-undo-shift]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const shiftId = e.currentTarget.dataset.undoShift;
+      undoShiftClose(shiftId);
     });
   });
 
@@ -10632,13 +10643,17 @@ function closeShift(shiftId) {
   const local = sales.filter(v => v.tipoConsumo === 'local' || !v.tipoConsumo).length;
   const llevar = sales.filter(v => v.tipoConsumo === 'llevar').length;
 
-  const msg = `¿Cerrar turno ${def.label} (${def.inicio}–${def.fin})?\n\n` +
+  // PRIMERA confirmación: resumen
+  const msg1 = `Vas a cerrar el turno ${def.label} (${def.inicio}–${def.fin})\n\n` +
     `Total: ${fmt(total)}\n` +
     `Ventas: ${count}\n` +
     `Efectivo: ${fmt(efectivo)} · Transferencia: ${fmt(transfer)}\n` +
-    `Local: ${local} · Llevar: ${llevar}`;
+    `Local: ${local} · Llevar: ${llevar}\n\n` +
+    `¿Querés continuar?`;
+  if (!confirm(msg1)) return;
 
-  if (!confirm(msg)) return;
+  // SEGUNDA confirmación: reconfirmar
+  if (!confirm(`RECONFIRMÁ: ¿Cerrar turno ${def.label} con total ${fmt(total)}?\n\nEsta acción queda registrada. Si te equivocás, podés deshacerla desde el botón "Deshacer cierre".`)) return;
 
   state.cierresTurno.push({
     id: Date.now(),
@@ -10657,6 +10672,23 @@ function closeShift(shiftId) {
   save();
   renderShiftCloseSection();
   showToastMsg(`Turno ${def.label} cerrado · ${fmt(total)}`);
+}
+
+function undoShiftClose(shiftId) {
+  const today = getTodayStr();
+  const cierre = state.cierresTurno.find(c => c.fecha === today && c.turnoId === shiftId);
+  if (!cierre) {
+    alert('No se encontró el cierre para deshacer.');
+    return;
+  }
+
+  if (!confirm(`¿Deshacer el cierre del turno ${cierre.turnoLabel}?\n\nEl turno va a volver a estado "Abierto" y se puede volver a cerrar.`)) return;
+
+  state.cierresTurno = state.cierresTurno.filter(c => c.id !== cierre.id);
+  save();
+  renderShiftCloseSection();
+  renderCajaSemanal();
+  showToastMsg(`Cierre del turno ${cierre.turnoLabel} deshecho`);
 }
 
 // =====================================================
